@@ -31,3 +31,35 @@ int main() {
     int k = 2;
     cout << "Max Sub Array Sum : " << maxSubarraySum(arr, k);
 }
+
+
+
+
+/* Using Prefix Sum
+
+int maxSubarrayAtLeastK(vector<int>& a, int k) {
+    int n = a.size();
+
+    vector<long long> prefix(n + 1, 0);
+
+    for (int i = 0; i < n; i++)
+        prefix[i + 1] = prefix[i] + a[i];
+
+    long long ans = LLONG_MIN;
+    long long minPrefix = LLONG_MAX;
+
+    for (int i = k; i <= n; i++) {
+
+        // prefix[i-k] is now eligible
+        minPrefix = min(minPrefix, prefix[i-k]);
+
+        // Best subarray ending at i-1
+        ans = max(ans, prefix[i] - minPrefix);
+    }
+
+    return ans;
+
+    
+}
+
+*/
