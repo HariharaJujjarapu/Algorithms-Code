@@ -8,11 +8,11 @@ using namespace std;
 class Solution {
 public:
     int maxProfit(vector<int>& prices, int k) {
-        int i = 0, maxProfit = 0;
+        int min = 0, maxProfit = 0;
         for(int j = k-1; j < prices.size(); j++){
-            maxProfit = max(maxProfit, prices[j] - prices[i]);
-            if(prices[j-(k-1)] < prices[i])
-                i = j-(k-1);
+            maxProfit = max(maxProfit, prices[j] - prices[min]);
+            if(prices[j-(k-1)] < prices[min])
+                min = j-(k-1);
         }
         return maxProfit;
     }

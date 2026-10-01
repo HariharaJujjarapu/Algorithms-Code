@@ -1,0 +1,1500 @@
+AVL TREE – COMPLETE CODE EXPLANATION
+====================================
+
+1. WHAT IS AN AVL TREE?
+-----------------------
+
+An AVL Tree is a self-balancing Binary Search Tree (BST).
+
+In a normal BST, if elements are inserted in sorted order, the tree can
+become skewed:
+
+        10
+          \
+           20
+             \
+              30
+                \
+                 40
+
+In this situation, searching becomes similar to searching in a linked list.
+
+An AVL Tree automatically performs rotations after insertion or deletion
+to keep the tree balanced.
+
+For every node in an AVL Tree:
+
+    Balance Factor = Height(Left Subtree) - Height(Right Subtree)
+
+The allowed balance factors are:
+
+    -1, 0, +1
+
+If the balance factor becomes:
+
+    > +1  -> Left Heavy
+    < -1 -> Right Heavy
+
+then a rotation is required.
+
+
+2. NODE STRUCTURE
+-----------------
+
+class Node{
+public:
+    int key;
+    Node* left;
+    Node* right;
+    int height;
+
+    Node(int x){
+        key = x;
+        left = nullptr;
+        right = nullptr;
+        height = 0;
+    }
+};
+
+Each node contains four things:
+
+    key
+        Stores the value of the node.
+
+    left
+        Pointer to the left child.
+
+    right
+        Pointer to the right child.
+
+    height
+        Stores the height of the node.
+
+For this implementation:
+
+    NULL node  -> height = -1
+    Leaf node  -> height = 0
+
+
+3. GET HEIGHT
+-------------
+
+int getHeight(Node* N){
+    if(N == nullptr)
+        return -1;
+
+    return N->height;
+}
+
+This function returns the height of a node.
+
+If the node is NULL:
+
+    return -1;
+
+Otherwise:
+
+    return N->height;
+
+
+Why use -1 for NULL?
+
+Consider a leaf node:
+
+        10
+       /  \
+    NULL  NULL
+
+The height is calculated as:
+
+    height(10)
+    = 1 + max(height(NULL), height(NULL))
+
+    = 1 + max(-1, -1)
+
+    = 1 + (-1)
+
+    = 0
+
+Therefore, a leaf node has height 0.
+
+
+4. UPDATE HEIGHT
+----------------
+
+void updateHeight(Node* root){
+    if(root == nullptr)
+        return;
+
+    root->height = 1 + max(
+        getHeight(root->left),
+        getHeight(root->right)
+    );
+}
+
+The height of a node is:
+
+    height(node)
+    = 1 + max(height(left), height(right))
+
+For example:
+
+          50
+         /  \
+       30    70
+
+If both 30 and 70 are leaves:
+
+    height(30) = 0
+    height(70) = 0
+
+Therefore:
+
+    height(50)
+    = 1 + max(0, 0)
+    = 1
+
+This function is called after insertion, deletion, and rotations
+because the height of a node may have changed.
+
+
+5. GET BALANCE FACTOR
+---------------------
+
+int getBalance(Node* N){
+    if(N == nullptr)
+        return 0;
+
+    return getHeight(N->left) - getHeight(N->right);
+}
+
+Balance Factor is:
+
+    BF = Height(Left Subtree) - Height(Right Subtree)
+
+Examples:
+
+    Left height  = 2
+    Right height = 2
+
+    BF = 2 - 2
+       = 0
+
+The node is balanced.
+
+
+Example:
+
+    Left height  = 3
+    Right height = 1
+
+    BF = 3 - 1
+       = +2
+
+The node is left-heavy and needs rebalancing.
+
+
+Example:
+
+    Left height  = 1
+    Right height = 3
+
+    BF = 1 - 3
+       = -2
+
+The node is right-heavy and needs rebalancing.
+
+
+Therefore:
+
+    BF = -1, 0, +1
+        -> Balanced
+
+    BF > 1
+        -> Left Heavy
+
+    BF < -1
+        -> Right Heavy
+
+
+6. FIND MINIMUM VALUE NODE
+--------------------------
+
+Node* minValueNode(Node* N){
+    Node* curr = N;
+
+    while(curr->left != nullptr)
+        curr = curr->left;
+
+    return curr;
+}
+
+In a Binary Search Tree:
+
+    Smaller values are always on the left.
+
+Therefore, to find the minimum value:
+
+    Start from the root.
+    Keep moving to the left.
+    Stop when there is no left child.
+
+Example:
+
+            50
+           /
+          30
+         /
+        20
+       /
+      10
+
+The minimum value is 10.
+
+The function keeps doing:
+
+    50 -> 30 -> 20 -> 10
+
+
+7. FIND MAXIMUM VALUE NODE
+--------------------------
+
+Node* maxValueNode(Node* N){
+    Node* curr = N;
+
+    while(curr->right != nullptr)
+        curr = curr->right;
+
+    return curr;
+}
+
+In a BST:
+
+    Larger values are always on the right.
+
+Therefore:
+
+    Start from the root.
+    Keep moving right.
+    Stop when there is no right child.
+
+Example:
+
+        50
+          \
+           70
+             \
+              90
+                \
+                 100
+
+The maximum value is 100.
+
+The function keeps doing:
+
+    50 -> 70 -> 90 -> 100
+
+
+8. LEFT ROTATION
+----------------
+
+Node* LLRotate(Node* Z){
+    Node* Y = Z->right;
+    Node* T2 = Y->left;
+
+    Y->left = Z;
+    Z->right = T2;
+
+    updateHeight(Z);
+    updateHeight(Y);
+
+    return Y;
+}
+
+
+IMPORTANT:
+
+In your code:
+
+    LLRotate() = LEFT ROTATION
+
+The function name is based on your professor's naming convention.
+
+Consider:
+
+        Z
+       / \
+      A   Y
+         / \
+        T2  C
+
+After left rotation:
+
+          Y
+         / \
+        Z   C
+       / \
+      A   T2
+
+
+Step 1:
+
+    Node* Y = Z->right;
+
+Y is the right child of Z.
+
+Y will become the new root of this subtree.
+
+
+Step 2:
+
+    Node* T2 = Y->left;
+
+T2 is temporarily stored because it needs to be moved.
+
+
+Step 3:
+
+    Y->left = Z;
+
+Z becomes the left child of Y.
+
+
+Step 4:
+
+    Z->right = T2;
+
+T2 becomes the right child of Z.
+
+The final structure is:
+
+          Y
+         / \
+        Z   C
+       / \
+      A   T2
+
+
+9. WHY HEIGHT UPDATE ORDER MATTERS
+----------------------------------
+
+After the rotation:
+
+          Y
+         / \
+        Z   C
+       / \
+      A   T2
+
+Z is below Y.
+
+Therefore, we first update Z:
+
+    updateHeight(Z);
+
+Then update Y:
+
+    updateHeight(Y);
+
+Why?
+
+Because the height of Y depends on the height of Z.
+
+So:
+
+    updateHeight(Z);
+    updateHeight(Y);
+
+is correct.
+
+If we did:
+
+    updateHeight(Y);
+    updateHeight(Z);
+
+then Y could use the OLD height of Z.
+
+Therefore:
+
+    LOWER NODE FIRST
+          |
+          v
+    HIGHER NODE SECOND
+
+
+10. RIGHT ROTATION
+------------------
+
+Node* RRRotate(Node* Z){
+    Node* Y = Z->left;
+    Node* T2 = Y->right;
+
+    Z->left = T2;
+    Y->right = Z;
+
+    updateHeight(Z);
+    updateHeight(Y);
+
+    return Y;
+}
+
+
+In your code:
+
+    RRRotate() = RIGHT ROTATION
+
+Before rotation:
+
+          Z
+         / \
+        Y   C
+       / \
+      A   T2
+
+After rotation:
+
+            Y
+           / \
+          A   Z
+             / \
+            T2  C
+
+
+Step 1:
+
+    Y = Z->left;
+
+Y is the left child of Z.
+
+
+Step 2:
+
+    T2 = Y->right;
+
+Store Y's right subtree.
+
+
+Step 3:
+
+    Z->left = T2;
+
+Move T2 to Z's left.
+
+
+Step 4:
+
+    Y->right = Z;
+
+Make Z the right child of Y.
+
+
+Final structure:
+
+            Y
+           / \
+          A   Z
+             / \
+            T2  C
+
+
+Again, update heights:
+
+    updateHeight(Z);
+    updateHeight(Y);
+
+because Z is now below Y.
+
+
+11. LEFT-RIGHT ROTATION
+-----------------------
+
+Node* LRRotate(Node* Z){
+    Z->left = LLRotate(Z->left);
+    return RRRotate(Z);
+}
+
+LR means:
+
+    Left-Right
+
+This happens when:
+
+    Z is left-heavy
+    but the insertion happened in the right subtree
+    of Z's left child.
+
+It requires TWO rotations.
+
+First:
+
+    Left rotation on Z's left child.
+
+Second:
+
+    Right rotation on Z.
+
+
+Therefore:
+
+    Z->left = LLRotate(Z->left);
+
+Then:
+
+    return RRRotate(Z);
+
+
+12. RIGHT-LEFT ROTATION
+-----------------------
+
+Node* RLRotate(Node* Z){
+    Z->right = RRRotate(Z->right);
+    return LLRotate(Z);
+}
+
+RL means:
+
+    Right-Left
+
+This happens when:
+
+    Z is right-heavy
+    but the insertion happened in the left subtree
+    of Z's right child.
+
+Two rotations are performed:
+
+    1. Right rotation on Z's right child
+    2. Left rotation on Z
+
+
+Therefore:
+
+    Z->right = RRRotate(Z->right);
+
+Then:
+
+    return LLRotate(Z);
+
+
+13. AVL INSERTION
+-----------------
+
+Node* insert(Node* node, int key){
+
+    if(node == nullptr)
+        return new Node(key);
+
+    if(key < node->key)
+        node->left = insert(node->left, key);
+
+    else if(key > node->key)
+        node->right = insert(node->right, key);
+
+    else
+        return node;
+
+    updateHeight(node);
+
+    int balance = getBalance(node);
+
+    if(balance > 1 && key > node->left->key)
+        node = LRRotate(node);
+
+    if(balance > 1 && key < node->left->key)
+        node = RRRotate(node);
+
+    if(balance < -1 && key > node->right->key)
+        node = LLRotate(node);
+
+    if(balance < -1 && key < node->right->key)
+        node = RLRotate(node);
+
+    return node;
+}
+
+
+AVL insertion happens in the following order:
+
+    1. Perform normal BST insertion.
+    2. Update height.
+    3. Calculate balance factor.
+    4. Check the four imbalance cases.
+    5. Perform rotation if necessary.
+    6. Return the root of the current subtree.
+
+
+14. BST INSERTION PART
+---------------------
+
+if(node == nullptr)
+    return new Node(key);
+
+If we reach NULL, we have found the correct position.
+
+Create a new node and return it.
+
+
+If key is smaller:
+
+    if(key < node->key)
+        node->left = insert(node->left, key);
+
+We recursively insert into the left subtree.
+
+
+If key is greater:
+
+    else if(key > node->key)
+        node->right = insert(node->right, key);
+
+We recursively insert into the right subtree.
+
+
+If key is equal:
+
+    else
+        return node;
+
+Duplicate keys are not allowed.
+
+
+15. WHY DO WE ASSIGN THE RETURNED POINTER?
+------------------------------------------
+
+Consider:
+
+    node->left = insert(node->left, key);
+
+The recursive insertion can cause a rotation.
+
+A rotation can change the root of the subtree.
+
+Therefore, the function returns the new root of that subtree.
+
+That is why we must write:
+
+    node->left = insert(node->left, key);
+
+and not simply:
+
+    insert(node->left, key);
+
+The same applies to the right subtree:
+
+    node->right = insert(node->right, key);
+
+
+16. UPDATE HEIGHT AFTER INSERTION
+---------------------------------
+
+After recursion returns:
+
+    updateHeight(node);
+
+Why?
+
+Because something was inserted below this node.
+
+Therefore, its height may have changed.
+
+Only after updating the height can we correctly calculate:
+
+    int balance = getBalance(node);
+
+
+17. FOUR INSERTION CASES
+------------------------
+
+There are four possible imbalance cases.
+
+Case 1:
+
+    LEFT-LEFT
+
+    balance > 1
+    key < node->left->key
+
+Rotation:
+
+    RRRotate(node)
+
+Remember:
+
+    RRRotate() in your code performs a RIGHT rotation.
+
+
+Case 2:
+
+    LEFT-RIGHT
+
+    balance > 1
+    key > node->left->key
+
+Rotation:
+
+    LRRotate(node)
+
+
+Case 3:
+
+    RIGHT-RIGHT
+
+    balance < -1
+    key > node->right->key
+
+Rotation:
+
+    LLRotate(node)
+
+Remember:
+
+    LLRotate() in your code performs a LEFT rotation.
+
+
+Case 4:
+
+    RIGHT-LEFT
+
+    balance < -1
+    key < node->right->key
+
+Rotation:
+
+    RLRotate(node)
+
+
+18. INSERTION CASE TABLE
+------------------------
+
+    Condition                         Case       Rotation
+
+    balance > 1
+    key < left child key              LL         RRRotate()
+
+    balance > 1
+    key > left child key              LR         LRRotate()
+
+    balance < -1
+    key > right child key             RR         LLRotate()
+
+    balance < -1
+    key < right child key             RL         RLRotate()
+
+
+19. AVL DELETION
+---------------
+
+Deletion is more complicated than insertion because deleting a node
+can make several ancestors become unbalanced.
+
+The function:
+
+    Node* deleteNode(Node* root, int key)
+
+performs:
+
+    1. Normal BST deletion.
+    2. Update height.
+    3. Calculate balance factor.
+    4. Check imbalance.
+    5. Perform required rotation.
+    6. Return the new root.
+
+
+20. SEARCH FOR NODE TO DELETE
+-----------------------------
+
+if(key < root->key)
+    root->left = deleteNode(root->left, key);
+
+If the key is smaller, search in the left subtree.
+
+
+else if(key > root->key)
+    root->right = deleteNode(root->right, key);
+
+If the key is greater, search in the right subtree.
+
+
+else
+
+The node has been found.
+
+
+21. DELETION CASE 1: NO CHILD
+-----------------------------
+
+Suppose:
+
+        50
+
+and we delete 50.
+
+Both children are NULL.
+
+We first calculate:
+
+    Node* temp = root->left ? root->left : root->right;
+
+Since both are NULL:
+
+    temp = NULL
+
+Then:
+
+    temp = root;
+    root = nullptr;
+
+Now:
+
+    temp -> old node
+    root -> NULL
+
+Then:
+
+    delete temp;
+
+The node is removed.
+
+The subtree now becomes empty.
+
+
+22. DELETION CASE 2: ONE CHILD
+------------------------------
+
+Suppose:
+
+        50
+          \
+           70
+
+We want to delete 50.
+
+Then:
+
+    temp = root->right;
+
+So:
+
+    temp points to 70.
+
+We perform:
+
+    *root = *temp;
+
+This copies the contents of the child into root.
+
+The root now contains 70.
+
+Then:
+
+    delete temp;
+
+The old child node is deleted.
+
+
+23. DELETION CASE 3: TWO CHILDREN
+----------------------------------
+
+Suppose:
+
+          50
+         /  \
+       30    70
+
+The node 50 has two children.
+
+We cannot simply delete it because we need to maintain the BST property.
+
+We find the inorder predecessor:
+
+    Node* temp = maxValueNode(root->left);
+
+The inorder predecessor is the largest value in the left subtree.
+
+For the tree:
+
+          50
+         /  \
+       30    70
+
+the predecessor is 30.
+
+
+Then:
+
+    root->key = temp->key;
+
+The key 30 is copied into the node that originally contained 50.
+
+Then:
+
+    root->left = deleteNode(root->left, temp->key);
+
+The original 30 node is deleted from the left subtree.
+
+
+24. INORDER PREDECESSOR VS SUCCESSOR
+------------------------------------
+
+In your code, you use:
+
+    maxValueNode(root->left)
+
+This gives the INORDER PREDECESSOR.
+
+Inorder predecessor:
+
+    Largest value in LEFT subtree.
+
+
+Inorder successor:
+
+    Smallest value in RIGHT subtree.
+
+The successor would be found using:
+
+    minValueNode(root->right)
+
+Both methods can be used for deletion.
+
+
+25. CHECK IF TREE BECAME EMPTY
+------------------------------
+
+After deletion:
+
+    if(root == nullptr)
+        return nullptr;
+
+This is important because the current subtree may have become empty.
+
+If it is empty, there is no height or balance to calculate.
+
+
+26. UPDATE HEIGHT AFTER DELETION
+--------------------------------
+
+After deleting a node:
+
+    updateHeight(root);
+
+The height of the current node may have changed.
+
+Then:
+
+    int balance = getBalance(root);
+
+We calculate the new balance factor.
+
+
+27. FOUR DELETION CASES
+-----------------------
+
+Deletion also has four cases.
+
+But there is an important difference from insertion.
+
+During insertion, we can use the inserted key to identify the case.
+
+During deletion, the deleted key is no longer enough.
+
+Instead, we check the BALANCE FACTOR OF THE CHILD.
+
+
+28. LEFT-LEFT CASE AFTER DELETION
+---------------------------------
+
+Condition:
+
+    balance > 1
+    getBalance(root->left) >= 0
+
+The current node is left-heavy.
+
+Its left child is either balanced or left-heavy.
+
+Therefore:
+
+    root = RRRotate(root);
+
+This performs a right rotation.
+
+
+29. LEFT-RIGHT CASE AFTER DELETION
+----------------------------------
+
+Condition:
+
+    balance > 1
+    getBalance(root->left) < 0
+
+The current node is left-heavy.
+
+But its left child is right-heavy.
+
+Therefore:
+
+    root = LRRotate(root);
+
+
+30. RIGHT-LEFT CASE AFTER DELETION
+----------------------------------
+
+Condition:
+
+    balance < -1
+    getBalance(root->right) > 0
+
+The current node is right-heavy.
+
+Its right child is left-heavy.
+
+Therefore:
+
+    root = RLRotate(root);
+
+
+31. RIGHT-RIGHT CASE AFTER DELETION
+-----------------------------------
+
+Condition:
+
+    balance < -1
+    getBalance(root->right) <= 0
+
+The current node is right-heavy.
+
+Its right child is balanced or right-heavy.
+
+Therefore:
+
+    root = LLRotate(root);
+
+This performs a left rotation.
+
+
+32. INSERTION VS DELETION
+-------------------------
+
+Insertion:
+
+    Use the inserted key to identify the case.
+
+Example:
+
+    balance > 1
+    key < node->left->key
+
+means LL case.
+
+
+Deletion:
+
+    The deleted node/key cannot be used in the same way.
+
+Instead, check the balance of the child.
+
+Example:
+
+    balance > 1
+    getBalance(root->left) >= 0
+
+means LL case.
+
+
+33. WHY DO WE RETURN ROOT?
+--------------------------
+
+At the end:
+
+    return root;
+
+This is very important.
+
+A rotation can change the root of the current subtree.
+
+Example:
+
+Before:
+
+        Z
+       /
+      Y
+
+After right rotation:
+
+        Y
+         \
+          Z
+
+The root changed from Z to Y.
+
+Therefore, the rotation function returns Y.
+
+The parent must receive this new root.
+
+That is why we write:
+
+    root->left = deleteNode(root->left, key);
+
+or:
+
+    root->right = deleteNode(root->right, key);
+
+and:
+
+    root = insert(root, key);
+
+The returned pointer represents the current root after all balancing.
+
+
+34. TRAVERSALS
+-------------
+
+PREORDER:
+
+    Root -> Left -> Right
+
+Code:
+
+    void PreOrder(Node* root){
+        if(root != nullptr){
+            cout << root->key << " ";
+            PreOrder(root->left);
+            PreOrder(root->right);
+        }
+    }
+
+
+INORDER:
+
+    Left -> Root -> Right
+
+Code:
+
+    void InOrder(Node* root){
+        if(root != nullptr){
+            InOrder(root->left);
+            cout << root->key << " ";
+            InOrder(root->right);
+        }
+    }
+
+For a BST or AVL Tree, inorder traversal produces the keys in SORTED
+ORDER.
+
+
+POSTORDER:
+
+    Left -> Right -> Root
+
+Code:
+
+    void PostOrder(Node* root){
+        if(root != nullptr){
+            PostOrder(root->left);
+            PostOrder(root->right);
+            cout << root->key << " ";
+        }
+    }
+
+
+35. MAIN FUNCTION
+-----------------
+
+First, the number of elements is read:
+
+    int n;
+    cin >> n;
+
+
+Then the values are stored:
+
+    vector<int> v(n);
+
+    for(int i = 0; i < n; i++)
+        cin >> v[i];
+
+
+Initially, the tree is empty:
+
+    Node* root = nullptr;
+
+
+Then all values are inserted:
+
+    for(int i = 0; i < n; i++){
+        root = insert(root, v[i]);
+    }
+
+Notice:
+
+    root = insert(root, v[i]);
+
+The returned root is stored because insertion may perform a rotation
+and change the root of the entire tree.
+
+
+Then inorder traversal is performed:
+
+    InOrder(root);
+
+Since this is an AVL/BST, the output will be sorted.
+
+
+After that, all values are deleted:
+
+    for(int i = 0; i < n; i++){
+        root = deleteNode(root, v[i]);
+    }
+
+Again, the returned root must be stored because deletion can perform
+rotations and change the root.
+
+
+Finally:
+
+    InOrder(root);
+
+prints the remaining tree.
+
+If every inserted value is deleted, the tree becomes empty and nothing
+is printed by the second inorder traversal.
+
+
+36. COMPLETE AVL INSERTION FLOW
+-------------------------------
+
+Suppose we insert a key.
+
+                    INSERT
+                       |
+                       v
+              Normal BST insertion
+                       |
+                       v
+                Recursive return
+                       |
+                       v
+                 Update height
+                       |
+                       v
+                Calculate balance
+                       |
+             +---------+---------+
+             |         |         |
+             v         v         v
+          Balanced   Unbalanced  ...
+             |         |
+             |         v
+             |    Identify case
+             |         |
+             |    +----+----+
+             |    |    |    |
+             |    v    v    v
+             |   LL   LR   RR/RL
+             |         |
+             +---------+
+                       |
+                       v
+                Return new root
+
+
+37. COMPLETE AVL DELETION FLOW
+------------------------------
+
+                    DELETE
+                       |
+                       v
+              Normal BST deletion
+                       |
+                       v
+                Recursive return
+                       |
+                       v
+                 Update height
+                       |
+                       v
+                Calculate balance
+                       |
+                       v
+              Is balance outside
+                  [-1, +1]?
+                       |
+                       v
+                Check child balance
+                       |
+             +---------+---------+
+             |         |         |
+             v         v         v
+            LL        LR        RR/RL
+             |         |         |
+             +---------+---------+
+                       |
+                       v
+                   Rotate
+                       |
+                       v
+                Return new root
+
+
+38. MOST IMPORTANT FUNCTIONS TO REMEMBER
+-----------------------------------------
+
+getHeight()
+
+    Returns the height of a node.
+
+    NULL = -1
+
+
+updateHeight()
+
+    Recalculates:
+
+    height = 1 + max(left height, right height)
+
+
+getBalance()
+
+    Calculates:
+
+    BF = left height - right height
+
+
+LLRotate()
+
+    Performs LEFT rotation.
+
+
+RRRotate()
+
+    Performs RIGHT rotation.
+
+
+LRRotate()
+
+    LEFT rotation on left child
+    followed by RIGHT rotation.
+
+
+RLRotate()
+
+    RIGHT rotation on right child
+    followed by LEFT rotation.
+
+
+insert()
+
+    BST insertion + height update + balancing.
+
+
+deleteNode()
+
+    BST deletion + height update + balancing.
+
+
+39. ROTATION MEMORY TABLE
+-------------------------
+
+Your function names:
+
+    LLRotate() = LEFT rotation
+    RRRotate() = RIGHT rotation
+
+
+AVL imbalance:
+
+    LL -> RIGHT rotation
+          RRRotate()
+
+    LR -> LEFT + RIGHT
+          LLRotate() + RRRotate()
+
+    RR -> LEFT rotation
+          LLRotate()
+
+    RL -> RIGHT + LEFT
+          RRRotate() + LLRotate()
+
+
+40. MOST IMPORTANT CONCEPT
+--------------------------
+
+An AVL Tree is basically:
+
+    BST
+    +
+    Height
+    +
+    Balance Factor
+    +
+    Rotations
+
+
+The insertion/deletion process is:
+
+    Modify BST
+        |
+        v
+    Update height
+        |
+        v
+    Calculate balance
+        |
+        v
+    If unbalanced
+        |
+        v
+    Perform rotation
+        |
+        v
+    Return new root
+
+
+The most important formulae are:
+
+    Height(node)
+        = 1 + max(Height(left), Height(right))
+
+
+    Balance Factor
+        = Height(left) - Height(right)
+
+
+AVL condition:
+
+    -1 <= Balance Factor <= +1
+
+
+And the most important pointer idea is:
+
+    A rotation can change the root of a subtree.
+
+Therefore, always store the returned pointer:
+
+    node->left = insert(node->left, key);
+
+    node->right = insert(node->right, key);
+
+    root = insert(root, key);
+
+    root = deleteNode(root, key);
+
+
+Finally, when updating heights after a rotation:
+
+    Update the node that moved DOWN first.
+    Update the node that moved UP second.
+
+Example:
+
+        Y
+       /
+      Z
+
+    updateHeight(Z);
+    updateHeight(Y);
+
+because Y's height depends on Z's new height.
